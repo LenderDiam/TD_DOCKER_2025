@@ -1,0 +1,28 @@
+# Root-level environment variables (keep .env.exemple as template)
+.env
+.env.local
+
+# Docker volumes and persistent data (recreated on docker compose up)
+db_data/
+postgres_data/
+*_data/
+
+# IDE and editors (personal preferences - not project-specific)
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
