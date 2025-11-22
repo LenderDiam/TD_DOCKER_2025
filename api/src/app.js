@@ -1,9 +1,13 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const pool = require('./db');
 
 
 const app = express();
+
+// Enable CORS for all origins (adjust for production)
+app.use(cors());
 app.use(express.json());
 
 

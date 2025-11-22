@@ -1,5 +1,5 @@
 {
-    "name": "td-docker-backend",
+    "name": "td-docker-api",
     "version": "1.0.0",
     "description": "API simple exposant /status et /items (Postgres)",
     "main": "src/app.js",
@@ -8,11 +8,12 @@
         "dev": "NODE_ENV=development nodemon src/app.js"
     },
     "dependencies": {
+        "cors": "^2.8.5",
         "dotenv": "^16.0.0",
         "express": "^4.18.2",
         "pg": "^8.11.0"
     },
     "engines": {
-        "node": ">=18"
+        "node": ">=22"
     }
 }
