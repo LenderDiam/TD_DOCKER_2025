@@ -4,11 +4,11 @@ Node.js REST API with Express, following layered architecture and best practices
 
 ## Table of Contents
 
-- [Endpoints](#-endpoints)
-- [Project Structure](#-project-structure)
-- [Request Flow](#-request-flow)
-- [Running Locally](#-running-locally)
-- [Testing](#-testing-endpoints)
+- [Endpoints](#endpoints)
+- [Project Structure](#project-structure)
+- [Request Flow](#request-flow)
+- [Running Locally](#running-locally)
+- [Testing](#testing-endpoints)
 
 ---
 
