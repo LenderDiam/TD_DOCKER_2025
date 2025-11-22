@@ -1,43 +1,46 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const pool = require('./db');
 
+const appConfig = require('./config/app');
+const logger = require('./utils/logger');
+const requestLogger = require('./middlewares/logger.middleware');
+const { errorHandler, notFoundHandler } = require('./middlewares/error.middleware');
+const itemRoutes = require('./routes/item.routes');
+const healthRoutes = require('./routes/health.routes');
 
 const app = express();
 
-// Enable CORS for all origins (adjust for production)
-app.use(cors());
+app.use(cors(appConfig.cors));
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+app.use(requestLogger);
 
-const PORT = process.env.PORT || 3000;
+app.use('/items', itemRoutes);
+app.use('/', healthRoutes);
 
+app.use(notFoundHandler);
 
-app.get('/status', (req, res) => {
-    res.json({ status: 'OK' });
+app.use(errorHandler);
+
+const server = app.listen(appConfig.port, () => {
+  logger.info(`API listening on port ${appConfig.port}`, {
+    environment: appConfig.nodeEnv,
+    port: appConfig.port,
+    logLevel: process.env.LOG_LEVEL,
+    logPretty: process.env.LOG_PRETTY
+  });
+  logger.debug('Configuration loaded', appConfig);
 });
 
-app.get('/items', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT id, title, body, created_at FROM items ORDER BY id');
-        res.json(result.rows);
-    } catch (err) {
-        console.error('DB error', err);
-        res.status(500).json({ error: 'Database error' });
-    }
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    logger.info('HTTP server closed');
+    process.exit(0);
+  });
 });
 
-app.get('/ready', async (req, res) => {
-    try {
-        await pool.query('SELECT 1');
-        res.json({ ready: true });
-    } catch (err) {
-        res.status(500).json({ ready: false });
-    }
-});
-
-
-app.listen(PORT, () => {
-    console.log(`API listening on port ${PORT}`);
-});
+module.exports = app;
