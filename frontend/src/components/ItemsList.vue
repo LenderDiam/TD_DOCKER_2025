@@ -1,39 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
+import { useItems } from '../composables/useItems'
+import ItemCard from './ItemCard.vue'
 
-interface Item {
-  id: number
-  title: string
-  body: string
-  created_at: string
-}
+// Use composable for items management
+const { items, loading, error, fetchItems, refreshItems } = useItems()
 
-const items = ref<Item[]>([])
-const loading = ref(true)
-const error = ref<string | null>(null)
-
-// API URL - en dev local Vite proxy, en prod via variable d'environnement
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
-
-async function fetchItems() {
-  try {
-    loading.value = true
-    error.value = null
-    const response = await fetch(`${API_URL}/items`)
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
-    
-    items.value = await response.json()
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to fetch items'
-    console.error('Error fetching items:', e)
-  } finally {
-    loading.value = false
-  }
-}
-
+// Fetch items on component mount
 onMounted(() => {
   fetchItems()
 })
@@ -41,29 +14,43 @@ onMounted(() => {
 
 <template>
   <div class="items-container">
-    <h1>📋 Items List</h1>
+    <h1 class="title">Items List</h1>
     
-    <div v-if="loading" class="loading">
-      Loading items...
+    <!-- Loading State -->
+    <div v-if="loading" class="loading" role="status" aria-live="polite">
+      <div class="spinner"></div>
+      <p>Loading items...</p>
     </div>
     
-    <div v-else-if="error" class="error">
-      ❌ Error: {{ error }}
+    <!-- Error State -->
+    <div v-else-if="error" class="error" role="alert">
+      <p>{{ error }}</p>
+      <button @click="refreshItems" class="retry-btn">Try Again</button>
     </div>
     
+    <!-- Empty State -->
     <div v-else-if="items.length === 0" class="empty">
-      No items found
+      <p>No items found</p>
     </div>
     
+    <!-- Items Grid -->
     <div v-else class="items-grid">
-      <div v-for="item in items" :key="item.id" class="item-card">
-        <h3>{{ item.title }}</h3>
-        <p>{{ item.body }}</p>
-        <small>Created: {{ new Date(item.created_at).toLocaleString() }}</small>
-      </div>
+      <ItemCard
+        v-for="item in items"
+        :key="item.id"
+        :item="item"
+      />
     </div>
     
-    <button @click="fetchItems" class="refresh-btn">🔄 Refresh</button>
+    <!-- Refresh Button -->
+    <button 
+      v-if="!loading && items.length > 0"
+      @click="refreshItems" 
+      class="refresh-btn"
+      :disabled="loading"
+    >
+      Refresh
+    </button>
   </div>
 </template>
 
@@ -74,76 +61,102 @@ onMounted(() => {
   padding: 2rem;
 }
 
-h1 {
+.title {
   text-align: center;
-  color: #42b983;
+  color: white;
   margin-bottom: 2rem;
+  font-size: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.loading, .error, .empty {
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: white;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 1rem;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error {
   text-align: center;
   padding: 2rem;
-  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  color: #d32f2f;
 }
 
-.error {
-  color: #ff4444;
+.retry-btn {
+  margin-top: 1rem;
+  padding: 0.5rem 1.5rem;
+  background: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
 }
 
+.retry-btn:hover {
+  background: #b71c1c;
+}
+
+/* Empty State */
+.empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: white;
+}
+
+/* Items Grid */
 .items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-.item-card {
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.item-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.item-card h3 {
-  margin: 0 0 0.5rem 0;
-  color: #2c3e50;
-}
-
-.item-card p {
-  margin: 0 0 1rem 0;
-  color: #666;
-  line-height: 1.5;
-}
-
-.item-card small {
-  color: #999;
-  font-size: 0.85rem;
-}
-
+/* Refresh Button */
 .refresh-btn {
   display: block;
   margin: 0 auto;
   padding: 0.75rem 2rem;
-  background: #42b983;
-  color: white;
+  background: white;
+  color: #667eea;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.refresh-btn:hover {
-  background: #359268;
+.refresh-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.refresh-btn:active {
+.refresh-btn:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
