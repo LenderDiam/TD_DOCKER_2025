@@ -1,0 +1,14 @@
+# Database backups
+*.sql
+*.dump
+*.backup
+
+# Exclude init scripts (we want to keep those)
+!init/*.sql
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
