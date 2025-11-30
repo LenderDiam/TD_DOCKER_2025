@@ -1,17 +1,18 @@
-# Root-level environment variables (keep .env.exemple as template)
+# Environment variables
 .env
 .env.local
+.env.*.local
 
-# Docker volumes and persistent data (recreated on docker compose up)
+# Docker volumes
 db_data/
 postgres_data/
 *_data/
 
-# IDE and editors (personal preferences - not project-specific)
+# IDE
 .vscode/
 .idea/
 
-# OS files
+# OS
 .DS_Store
 .DS_Store?
 ._*
@@ -21,7 +22,7 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# Backup files
+# Backup
 *.bak
 *.backup
 *.old

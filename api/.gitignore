@@ -1,4 +1,4 @@
-# Node.js dependencies
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -20,8 +20,8 @@ logs/
 # OS
 .DS_Store
 
-# Test coverage
+# Coverage
 coverage/
 
-# Temporary files
+# Temporary
 *.tmp

@@ -3,12 +3,12 @@
 *.dump
 *.backup
 
-# Exclude init scripts (we want to keep those)
+# Keep init scripts
 !init/*.sql
 
 # Logs
 *.log
 
-# Temporary files
+# Temporary
 *.tmp
 *.temp
