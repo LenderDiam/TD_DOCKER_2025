@@ -60,6 +60,7 @@ services:
       - td_network
     depends_on:
       - api
+
     cap_drop:
       - ALL
     cap_add:
@@ -69,7 +70,7 @@ services:
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/nginx-health || exit 1"]
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:8080/nginx-health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
