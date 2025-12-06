@@ -11,6 +11,26 @@ services:
       - ./db/init:/docker-entrypoint-initdb.d:ro
     networks:
       - td_network
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          memory: 512M
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -63,12 +83,18 @@ services:
 
     cap_drop:
       - ALL
-    cap_add:
-      - CHOWN
-      - SETGID
-      - SETUID
+
     security_opt:
       - no-new-privileges:true
+
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+        reservations:
+          memory: 64M
+
     healthcheck:
       test: [ "CMD-SHELL", "wget --spider -q http://localhost:8080/nginx-health || exit 1" ]
       interval: 30s
