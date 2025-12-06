@@ -41,12 +41,29 @@ services:
     build:
       context: ./api
     environment:
-      PORT: 3000
+      # Application
+      PORT: ${API_PORT:-3000}
+      NODE_ENV: ${NODE_ENV:-production}
+
+      # Database
       DB_HOST: db
       DB_PORT: ${DB_PORT}
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
+
+      # Database Pool
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
+      DB_POOL_IDLE_TIMEOUT: ${DB_POOL_IDLE_TIMEOUT:-30000}
+      DB_POOL_CONNECTION_TIMEOUT: ${DB_POOL_CONNECTION_TIMEOUT:-2000}
+
+      # CORS
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      CORS_CREDENTIALS: ${CORS_CREDENTIALS:-true}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_PRETTY: ${LOG_PRETTY:-true}
     ports:
       - "${API_PORT}:3000"
     networks:
