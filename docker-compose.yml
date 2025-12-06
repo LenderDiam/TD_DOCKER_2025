@@ -47,7 +47,7 @@ services:
 
       # Database
       DB_HOST: db
-      DB_PORT: ${DB_PORT}
+      DB_PORT: ${DB_PORT:-5432}
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_NAME: ${POSTGRES_DB}
