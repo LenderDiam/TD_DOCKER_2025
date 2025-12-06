@@ -1,6 +1,7 @@
 services:
   db:
-    image: postgres:15-alpine
+    build:
+      context: ./db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -33,6 +34,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          memory: 256M
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/ready || exit 1"]
       interval: 30s
@@ -42,14 +54,22 @@ services:
   frontend:
     build:
       context: ./frontend
-    volumes:
-      - ./frontend/dist:/usr/share/nginx/html:ro
     ports:
-      - "8080:80"
+      - "8080:8080"
     networks:
       - td_network
+    depends_on:
+      - api
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
-      test: ["CMD-SHELL", "wget --spider -q http://localhost || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/nginx-health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
