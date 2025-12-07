@@ -10,7 +10,7 @@ Write-Host "SECURITY AUDIT: Linux Capabilities" -ForegroundColor Cyan
 Write-Host ("="*75) -ForegroundColor Cyan
 Write-Host ""
 
-# Fonction pour analyser les capacités d'un conteneur
+# Function to analyze container capabilities
 function Test-ContainerCapabilities {
     param(
         [string]$ServiceName
@@ -20,19 +20,19 @@ function Test-ContainerCapabilities {
     Write-Host "SERVICE: $ServiceName" -ForegroundColor Cyan
     Write-Host ("="*75) -ForegroundColor Cyan
     
-    # Récupérer l'ID du conteneur
+    # Get container ID
     $ContainerID = docker compose ps -q $ServiceName 2>$null
     
     if (-not $ContainerID) {
-        Write-Host "  ❌ ERREUR: Service $ServiceName non trouvé" -ForegroundColor Red
+        Write-Host "  ❌ ERROR: Service $ServiceName not found" -ForegroundColor Red
         return @{ service = $ServiceName; score = 0 }
     }
     
-    # Inspecter le conteneur
+    # Inspect container
     $Inspect = docker inspect $ContainerID | ConvertFrom-Json
     
     if (-not $Inspect) {
-        Write-Host "  ❌ ERREUR: Impossible d'inspecter le conteneur" -ForegroundColor Red
+        Write-Host "  ❌ ERROR: Cannot inspect container" -ForegroundColor Red
         return @{ service = $ServiceName; score = 0 }
     }
     
@@ -212,7 +212,7 @@ $Results += Test-ContainerCapabilities -ServiceName "db"
 
 Write-Host "`n" 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "RAPPORT GLOBAL DE SÉCURITÉ" -ForegroundColor Cyan
+Write-Host "GLOBAL SECURITY REPORT" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -224,7 +224,7 @@ foreach ($result in $Results) {
 }
 $GlobalPercentage = if ($TotalMaxScore -gt 0) { [math]::Round(($TotalScore / $TotalMaxScore) * 100) } else { 0 }
 
-Write-Host "Services analysés: $($Results.Count)" -ForegroundColor White
+Write-Host "Services analyzed: $($Results.Count)" -ForegroundColor White
 Write-Host "Score total: $TotalScore/$TotalMaxScore ($GlobalPercentage%)" -ForegroundColor White
 Write-Host ""
 

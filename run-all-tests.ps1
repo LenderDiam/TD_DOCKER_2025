@@ -40,6 +40,11 @@ $Script:TestFiles = @(
         Path = "tests"
     },
     @{ 
+        Name = "Security Scan (Trivy)"
+        File = "test-security-scan.ps1"
+        Path = "tests"
+    },
+    @{ 
         Name = "API Functional Tests"
         File = "test-api.ps1"
         Path = "tests"
