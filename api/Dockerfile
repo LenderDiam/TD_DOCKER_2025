@@ -1,8 +1,17 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --production
-COPY src ./src
+RUN npm ci --production --quiet
+
+COPY src/app.js ./src/
+COPY src/config ./src/config
+COPY src/controllers ./src/controllers
+COPY src/middlewares ./src/middlewares
+COPY src/models ./src/models
+COPY src/repositories ./src/repositories
+COPY src/routes ./src/routes
+COPY src/services ./src/services
+COPY src/utils ./src/utils
 
 FROM node:22-alpine
 
