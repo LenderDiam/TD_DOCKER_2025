@@ -86,6 +86,28 @@ POSTGRES_DB=td_docker_db
 API_PORT=3000
 NODE_ENV=production
 ```
+
+## Troubleshooting
+
+### Build Issues with Docker Hub Images
+
+If you encounter problems pulling images from Docker Hub, you can build locally instead:
+
+1. Open `docker-compose.yml`
+2. Comment the `image:` lines
+3. Uncomment the `build:` sections with local context
+
+```yaml
+# Use this for Docker Hub images (default)
+image: lenderdiam/td-docker-api:latest
+
+# Use this for local builds (if Docker Hub unavailable)
+# build:
+#   context: ./api
+#   dockerfile: Dockerfile
+```
+
+Then rebuild: `docker compose up -d --build`
  
 ## Complete Documentation
 
