@@ -1,7 +1,7 @@
 # ==============================================================================
 # BUILD AND DEPLOY AUTOMATION SCRIPT
 # ==============================================================================
-# Automatise : Build, Scan, Push, Deploy
+# Automates: Build, Scan, Push, Deploy
 # ==============================================================================
 
 param(
@@ -15,7 +15,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Désactiver Docker Content Trust
+# Disable Docker Content Trust
 $env:DOCKER_CONTENT_TRUST = "0"
 
 # ==============================================================================
@@ -81,36 +81,36 @@ function Test-CommandExists {
 }
 
 # ==============================================================================
-# STEP 1: VALIDATION DE L'ENVIRONNEMENT
+# STEP 1: ENVIRONMENT VALIDATION
 # ==============================================================================
 
 function Test-Environment {
-    Write-Step "Validation de l'environnement"
+    Write-Step "Environment validation"
     
-    # Vérifier Docker
+    # Check Docker
     if (-not (Test-CommandExists "docker")) {
-        Write-Failure "Docker n'est pas installé"
+        Write-Failure "Docker is not installed"
         exit 1
     }
-    Write-Success "Docker est installé"
+    Write-Success "Docker is installed"
     
-    # Vérifier Docker Compose
+    # Check Docker Compose
     if (-not (Test-CommandExists "docker")) {
-        Write-Failure "Docker Compose n'est pas disponible"
+        Write-Failure "Docker Compose is not available"
         exit 1
     }
-    Write-Success "Docker Compose est disponible"
+    Write-Success "Docker Compose is available"
     
-    # Vérifier que Docker daemon est lancé
+    # Check that Docker daemon is running
     try {
         docker ps | Out-Null
-        Write-Success "Docker daemon est actif"
+        Write-Success "Docker daemon is active"
     } catch {
-        Write-Failure "Docker daemon n'est pas lancé"
+        Write-Failure "Docker daemon is not running"
         exit 1
     }
     
-    # Vérifier le fichier .env
+    # Check .env file
     if (-not (Test-Path ".env")) {
         Write-Warning "Fichier .env non trouvé"
         if (Test-Path ".env.exemple") {
@@ -122,14 +122,14 @@ function Test-Environment {
 }
 
 # ==============================================================================
-# STEP 2: BUILD DES IMAGES
+# STEP 2: BUILD IMAGES
 # ==============================================================================
 
 function Build-Images {
-    Write-Step "Construction des images Docker"
+    Write-Step "Building Docker images"
     
     foreach ($image in $Script:Config.Images) {
-        Write-Info "Construction de l'image: $($image.Name)"
+        Write-Info "Building image: $($image.Name)"
         
         $buildArgs = @(
             "build",
@@ -146,109 +146,109 @@ function Build-Images {
         try {
             & docker @buildArgs
             if ($LASTEXITCODE -eq 0) {
-                Write-Success "Image $($image.Name) construite avec succès"
+                Write-Success "Image $($image.Name) built successfully"
                 
-                # Afficher la taille de l'image
+                # Display image size
                 $size = docker images "$($image.Tag):latest" --format "{{.Size}}"
-                Write-Info "Taille de l'image: $size"
+                Write-Info "Image size: $size"
             } else {
-                Write-Failure "Échec de construction de l'image $($image.Name)"
+                Write-Failure "Failed to build image $($image.Name)"
                 exit 1
             }
         } catch {
-            Write-Failure "Erreur lors de la construction de $($image.Name): $($_.Exception.Message)"
+            Write-Failure "Error building $($image.Name): $($_.Exception.Message)"
             exit 1
         }
     }
 }
 
 # ==============================================================================
-# STEP 3: SCAN DE SÉCURITÉ DES IMAGES
+# STEP 3: SECURITY SCAN OF IMAGES
 # ==============================================================================
 
 function Invoke-SecurityScan {
     if ($SkipScan) {
-        Write-Warning "Scan de sécurité ignoré (--SkipScan)"
+        Write-Warning "Security scan skipped (--SkipScan)"
         return
     }
     
-    Write-Step "Scan de sécurité des images (optionnel)"
+    Write-Step "Security scan of images (optional)"
     
-    # Construire la liste des tags d'images
+    # Build list of image tags
     $imageTags = @()
     foreach ($image in $Script:Config.Images) {
         $imageTags += "$($image.Tag):latest"
     }
     
-    # Appeler le script de test de sécurité
+    # Call security test script
     $scanScriptPath = Join-Path $PSScriptRoot "tests\test-security-scan.ps1"
     
     if (-not (Test-Path $scanScriptPath)) {
-        Write-Warning "Script tests\test-security-scan.ps1 introuvable"
+        Write-Warning "Script tests\test-security-scan.ps1 not found"
         return
     }
     
     try {
-        Write-Info "Exécution du scan de sécurité..."
+        Write-Info "Running security scan..."
         $scanResult = & $scanScriptPath -ImageTags $imageTags -Quiet -ReturnObject
         
         if ($scanResult.Success) {
             foreach ($result in $scanResult.Results) {
                 if ($result.Success) {
-                    $imageName = $result.ImageTag -replace ".*/(.*):.*", '$1'
+                    $imageName = $result.ImageTag -replace ".*/(.*):.* ", '$1'
                     if ($result.Critical -eq 0 -and $result.High -eq 0) {
-                        Write-Success "$imageName : Aucune vulnérabilité critique"
+                        Write-Success "$imageName : No critical vulnerabilities"
                     } else {
                         Write-Warning "$imageName : $($result.Critical) CRITICAL, $($result.High) HIGH"
                     }
                 }
             }
         } else {
-            Write-Warning "Scan non disponible ou erreur: $($scanResult.Error)"
+            Write-Warning "Scan unavailable or error: $($scanResult.Error)"
         }
     } catch {
-        Write-Warning "Erreur lors du scan: $($_.Exception.Message)"
+        Write-Warning "Error during scan: $($_.Exception.Message)"
     }
 }
 
 # ==============================================================================
-# STEP 4: VALIDATION DOCKER COMPOSE
+# STEP 4: DOCKER COMPOSE VALIDATION
 # ==============================================================================
 
 function Test-DockerCompose {
-    Write-Step "Validation de la configuration Docker Compose"
+    Write-Step "Docker Compose configuration validation"
     
     try {
         docker compose config > $null
         if ($LASTEXITCODE -eq 0) {
-            Write-Success "Configuration docker-compose.yml valide"
+            Write-Success "docker-compose.yml configuration is valid"
         } else {
-            Write-Failure "Configuration docker-compose.yml invalide"
+            Write-Failure "docker-compose.yml configuration is invalid"
             exit 1
         }
     } catch {
-        Write-Failure "Erreur lors de la validation: $($_.Exception.Message)"
+        Write-Failure "Error during validation: $($_.Exception.Message)"
         exit 1
     }
 }
 
 # ==============================================================================
-# STEP 5: LOGIN AU REGISTRE
+# STEP 5: REGISTRY LOGIN
 # ==============================================================================
 
 function Connect-Registry {
     if ($SkipPush) {
-        Write-Warning "Push ignoré, connexion au registre non nécessaire"
+        Write-Warning "Push skipped, registry connection not needed"
         return
     }
     
-    Write-Step "Connexion au registre Docker"
+    Write-Step "Docker registry connection"
     
-    Write-Info "Registre: $Registry"
-    Write-Info "Utilisateur: $Username"
+    Write-Info "Registry: $Registry"
+    Write-Info "Username: $Username"
     
     try {
-        # Vérifier si déjà connecté
+        # Check if already connected
         $ErrorActionPreference = "SilentlyContinue"
         $loginTest = docker info 2>&1 | Select-String "Username"
         $ErrorActionPreference = "Continue"
@@ -276,59 +276,59 @@ function Connect-Registry {
 }
 
 # ==============================================================================
-# STEP 6: PUSH DES IMAGES
+# STEP 6: PUSH IMAGES
 # ==============================================================================
 
 function Push-Images {
     if ($SkipPush) {
-        Write-Warning "Push des images ignoré (--SkipPush)"
+        Write-Warning "Push images skipped (--SkipPush)"
         return
     }
     
-    Write-Step "Push des images vers le registre"
+    Write-Step "Pushing images to registry"
     
     foreach ($image in $Script:Config.Images) {
-        Write-Info "Push de l'image: $($image.Name)"
+        Write-Info "Pushing image: $($image.Name)"
         
         try {
             docker push "$($image.Tag):latest"
             
             if ($LASTEXITCODE -eq 0) {
-                Write-Success "Image $($image.Name) poussée avec succès"
+                Write-Success "Image $($image.Name) pushed successfully"
             } else {
-                Write-Failure "Échec du push de l'image $($image.Name)"
+                Write-Failure "Failed to push image $($image.Name)"
                 exit 1
             }
             
-            # Push avec tag version si différent de latest
+            # Push with version tag if different from latest
             if ($Script:Config.Version -ne "latest") {
                 docker push "$($image.Tag):$($Script:Config.Version)"
             }
         } catch {
-            Write-Failure "Erreur lors du push de $($image.Name): $($_.Exception.Message)"
+            Write-Failure "Error pushing $($image.Name): $($_.Exception.Message)"
             exit 1
         }
     }
 }
 
 # ==============================================================================
-# STEP 7: DÉPLOIEMENT
+# STEP 7: DEPLOYMENT
 # ==============================================================================
 
 function Start-Deployment {
     if ($SkipDeploy) {
-        Write-Warning "Déploiement ignoré (--SkipDeploy)"
+        Write-Warning "Deployment skipped (--SkipDeploy)"
         return
     }
     
-    Write-Step "Déploiement de l'application"
+    Write-Step "Application deployment"
     
-    # Arrêter les conteneurs existants
-    Write-Info "Arrêt des conteneurs existants..."
+    # Stop existing containers
+    Write-Info "Stopping existing containers..."
     docker compose down 2>&1 | Out-Null
     
-    # Démarrer les nouveaux conteneurs
-    Write-Info "Démarrage des conteneurs..."
+    # Start new containers
+    Write-Info "Starting containers..."
     docker compose up -d
     
     if ($LASTEXITCODE -eq 0) {
@@ -371,47 +371,47 @@ function Start-Deployment {
 
 Write-Header "AUTOMATION - BUILD, SCAN, PUSH & DEPLOY"
 
-Write-Info "Projet: $($Script:Config.ProjectName)"
+Write-Info "Project: $($Script:Config.ProjectName)"
 Write-Info "Version: $($Script:Config.Version)"
-Write-Info "Registre: $Registry/$Username"
+Write-Info "Registry: $Registry/$Username"
 
 try {
-    # Étape 1: Validation
+    # Step 1: Validation
     Test-Environment
     
-    # Étape 2: Build
+    # Step 2: Build
     Build-Images
     
-    # Étape 3: Scan de sécurité (optionnel)
+    # Step 3: Security scan (optional)
     Invoke-SecurityScan
     
-    # Étape 4: Validation Compose
+    # Step 4: Compose validation
     Test-DockerCompose
     
-    # Étape 5: Login
+    # Step 5: Login
     Connect-Registry
     
-    # Étape 6: Push
+    # Step 6: Push
     Push-Images
     
-    # Étape 7: Déploiement
+    # Step 7: Deployment
     Start-Deployment
     
-    # Résumé final
-    Write-Header "DÉPLOIEMENT TERMINÉ AVEC SUCCÈS"
-    Write-Success "Toutes les étapes ont été complétées"
+    # Final summary
+    Write-Header "DEPLOYMENT COMPLETED SUCCESSFULLY"
+    Write-Success "All steps completed"
     
-    Write-Host "`n📊 Accès aux services:" -ForegroundColor Cyan
+    Write-Host "`n📊 Access to services:" -ForegroundColor Cyan
     Write-Host "  - API:      http://localhost:3000" -ForegroundColor White
     Write-Host "  - Frontend: http://localhost:8080" -ForegroundColor White
-    Write-Host "`n📝 Commandes utiles:" -ForegroundColor Cyan
+    Write-Host "`n📝 Useful commands:" -ForegroundColor Cyan
     Write-Host "  - Logs:     docker compose logs -f" -ForegroundColor White
     Write-Host "  - Status:   docker compose ps" -ForegroundColor White
     Write-Host "  - Stop:     docker compose down" -ForegroundColor White
     Write-Host "  - Tests:    .\run-all-tests.ps1" -ForegroundColor White
     
 } catch {
-    Write-Header "ERREUR DURANT L'EXÉCUTION"
+    Write-Header "ERROR DURING EXECUTION"
     Write-Failure $_.Exception.Message
     Write-Info "Stack trace: $($_.ScriptStackTrace)"
     exit 1
